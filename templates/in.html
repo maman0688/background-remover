@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Background Remover</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+      }
+      .image-container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+        gap: 20px;
+      }
+      .image-container div {
+        flex: 1;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ccc;
+      }
+      button {
+        padding: 10px 20px;
+        margin-top: 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Background Remover</h1>
+      <input type="file" id="imageInput" accept="image/*" />
+      <br />
+      <button onclick="removeBackground()">Hapus Latar Belakang</button>
+
+      <div class="image-container">
+        <div>
+          <h3>Gambar Asli</h3>
+          <img id="originalImage" src="https://via.placeholder.com/300x300.png" alt="Gambar asli akan muncul di sini" />
+        </div>
+        <div>
+          <h3>Hasil</h3>
+          <img id="resultImage" src="https://via.placeholder.com/300x300.png" alt="Hasil akan muncul di sini" />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const imageInput = document.getElementById("imageInput");
+      const originalImage = document.getElementById("originalImage");
+      const resultImage = document.getElementById("resultImage");
+
+      // Tampilkan gambar otomatis saat file di-upload
+      imageInput.addEventListener("change", function () {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            originalImage.src = e.target.result;
+          };
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+
+      // Fungsi hapus background
+      function removeBackground() {
+        if (imageInput.files.length === 0) {
+          alert("Pilih gambar terlebih dahulu!");
+          return;
+        }
+
+        const file = imageInput.files[0];
+        const formData = new FormData();
+        formData.append("image", file);
+
+        fetch("/remove-bg", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Gagal menghapus latar belakang");
+            }
+            return response.blob();
+          })
+          .then((blob) => {
+            const url = URL.createObjectURL(blob);
+            resultImage.src = url;
+          })
+          .catch((error) => {
+            alert("Error: " + error.message);
+          });
+      }
+    </script>
+  </body>
+</html>
